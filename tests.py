@@ -1,6 +1,6 @@
 import unittest, pdb
 from markdown import markdown
-from headers import Mkd_renderer, Mkd_html
+from renderers import Mkd_renderer, Mkd_html
 
 class TestMd2HTML:
 

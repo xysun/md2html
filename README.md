@@ -5,6 +5,12 @@ A lightweight markdown to html parser in Python
 
 #### Release Notes
 
+* 28-Jun-2013    v0.2
+
+     * Adding support for header lines using '=' and '-', reference style likes; horizontal rules
+     * Fixed bug: last paragraph in list now wrapped in `<p>` properly by using a nasty global variable
+     * Known bug when use horizontal rule after unordered list, both using asterisk, horizontal rule won't get properly rendered.
+
 * 27-Jun-2013    v0.1
 
      Working, but you have my warnings. Specifically:
@@ -13,11 +19,6 @@ A lightweight markdown to html parser in Python
      * No support for header lines using '=' and '-'
      * No support for horizontal rules
      * Known bug: last paragraph in list won't be wrapped in <p>
-
-* 28-Jun-2013    v0.2
-
-     * Adding support for header lines using '=' and '-'
-     * Fixed bug: last paragraph in list now wrapped in <p> properly by using a nasty global variable
 
 #### How to Use:
 
@@ -35,6 +36,13 @@ To use within your own code:
     out = markdown(source, Mkd_html())
 
     # both source and out are strings
+
+#### Notes
+
+Below are the features that I don't intend to add in the near future, more a choice of style:
+
+* image support
+* native HTML tags support
 
 #### Credits
 

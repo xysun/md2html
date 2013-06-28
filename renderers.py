@@ -26,7 +26,10 @@ class Mkd_renderer: # standard renderer
             elif src[i] == '>':
                 ob.append('&gt;')
             elif src[i] == '&':
-                ob.append('&amp;')
+                if i + 5 < size and src[i:i+5] == ['&', 'a', 'm', 'p', ';']:
+                    ob.append(src[i])
+                else:
+                    ob.append('&amp;')
             i += 1
     
     def lus_attr_escape(self, ob, src):
@@ -53,6 +56,14 @@ class Mkd_renderer: # standard renderer
         
     # rendering functions return 1 if succeed
 
+    def autolink(self, ob, link):
+        ob.append('<a href="')
+        self.lus_attr_escape(ob, link)
+        ob.append('">')
+        self.lus_body_escape(ob, link)
+        ob.append('</a>')
+        return 1
+    
     def blockcode(self, ob, text):
         ob.append('\n')
         ob.append('<pre><code>')
@@ -185,12 +196,17 @@ class Mkd_html(Mkd_renderer): # html renderer
         ob.append('<br />')
         ob.append('\n')
         return 1
+    def hrule(self, ob):
+        ob.append('\n')
+        ob.append('<hr />')
+        ob.append('\n')
 
 class Render:
     def __init__(self, make=None, active_char={}):
         self.make = make # Mkd_renderer
         self.active_char = active_char # dict of char_trigger functions
-        self.work = [] # don't know the usage yet
+        self.work = [] # buffer
+        self.refs = [] # list of ref objects: {"id":, "link", "title"}
 
 def test():
     m = Mkd_html()

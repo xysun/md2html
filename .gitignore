@@ -1,2 +1,4 @@
 *.swp
 output.html
+*.pyc
+testing_single.py

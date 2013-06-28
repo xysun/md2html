@@ -13,7 +13,7 @@ class TestMd2HTML:
         # take out trailing '\n' in out
         while len(out) > 0 and out[-1] == '\n':
             out = out[:-1]
-        
+#        print("now testing: " + fname)        
         ob = markdown(src, Mkd_html())
         self.assertEqual(out, ob)
 
@@ -26,17 +26,20 @@ class TestMd2HTML_gruber(TestMd2HTML, unittest.TestCase):
         self.output_postfix = '.html'
 
     def test_all(self):
+        self.general('Amps and angle encoding')
+        self.general('Auto links')
         self.general('Backslash escapes')
         self.general('Blockquotes with code blocks') 
         self.general('Code Blocks')
-#        self.general('Code Spans')
+#        self.general('Code Spans') html tag
+        self.general('Hard-wrapped paragraphs with list-like lines')
         self.general('Links, inline style')
-#        self.general('Links, reference style')
-#        self.general('Links, shortcut references')
-#        self.general('Literal quotes in titles') auto link
+        self.general('Links, reference style')
+        self.general('Links, shortcut references')
+        self.general('Literal quotes in titles') 
 #        self.general('Markdown Documentation - Basics')
 #        self.general('Markdown Documentation - Syntax')
-#        self.general('Ordered and unordered lists')    horizontal rule
+#        self.general('Ordered and unordered lists')   known bug
         self.general('Nested blockquotes') 
         self.general('Strong and em together')
         self.general('Tabs')
@@ -61,6 +64,7 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('paragraph-hard-return')
         self.general('paragraph-line')
         self.general('paragraph-trailing-leading-spaces')
+        self.general('paragraph-trailing-tab')
         self.general('paragraphs-2-leading-spaces')
         self.general('paragraphs-3-leading-spaces')
         self.general('paragraphs-leading-space')
@@ -111,8 +115,18 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('line-break-5-spaces')
     
     def test_link(self):
+        self.general('link-automatic')
         self.general('link-bracket-paranthesis-title')
         self.general('link-bracket-paranthesis')
+        self.general('link-idref-angle-bracket')
+        self.general('link-idref-implicit-spaces')
+        self.general('link-idref-implicit')
+        self.general('link-idref-space')
+        self.general('link-idref-title-next-line')
+        self.general('link-idref-title-paranthesis')
+        self.general('link-idref-title-single-quote')
+        self.general('link-idref-title')
+        self.general('link-idref')
     
     def test_blockquote(self):
         self.general('blockquote-added-markup')
@@ -131,12 +145,12 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('code-1-tab')
         self.general('code-4-spaces-escaping')
         self.general('code-4-spaces')
-#        self.general('list-code') list
         self.general('inline-code-escaping-entities')
         self.general('inline-code-with-visible-backtick')
         self.general('inline-code')
     
     def test_list(self):
+#        self.general('list-code')
         self.general('unordered-list-items-dashsign')
         self.general('unordered-list-items-leading-1space')
         self.general('unordered-list-items-leading-2spaces')
@@ -146,13 +160,20 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('unordered-list-paragraphs') 
         self.general('unordered-list-unindented-content')
         self.general('unordered-list-with-indented-content')
-        self.general('list-blockquote')
-        self.general('list-code')
+        self.general('list-blockquote') 
+        self.general('list-code') # this has to be after unordered list?????
         self.general('list-multiparagraphs-tab')
         self.general('list-multiparagraphs')
         self.general('ordered-list-escaped')
         self.general('ordered-list-items-random-number')
         self.general('ordered-list-items')
+
+    def test_hr(self):
+        self.general('horizontal-rule-3-dashes-spaces')
+        self.general('horizontal-rule-3-dashes')
+        self.general('horizontal-rule-3-stars')
+        self.general('horizontal-rule-3-underscores')
+        self.general('horizontal-rule-7-dashes')
 
 if __name__ == '__main__':
     unittest.main()

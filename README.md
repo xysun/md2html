@@ -22,7 +22,7 @@ A lightweight markdown to html parser in Python
 
 #### How to Use:
 
-First download all source files. Run `python3 tests.py` to ensure all tests are passed.
+First download all source files. Run `python3 testing.py` to ensure all tests are passed.
 
 Quick way to translate input markdown to output html:
 

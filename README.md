@@ -39,11 +39,15 @@ To use within your own code:
 
 #### Notes
 
-Below are the features that I don't intend to add in the near future, more a choice of style:
+Below are the features that I don't intend to add in the near future, more a choice of style, since I believe Markdown should be primarily used on pure text writing:
 
 * image support
 * native HTML tags support
 
 #### Credits
 
-I used the same design structure as [libsoldout](http://fossil.instinctive.eu/libsoldout/home)
+* I used the same design structure as [libsoldout](http://fossil.instinctive.eu/libsoldout/home)
+* For test suites, I used John Gruber's original tests, from [peg-markdown][peg], I also used Karl Cow's [unit test suites][karlcow].
+
+[peg]: https://github.com/jgm/peg-markdown/tree/master/MarkdownTest_1.0.3
+[karlcow]: https://github.com/karlcow/markdown-testsuite

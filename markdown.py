@@ -783,7 +783,7 @@ def markdown(ib, rndrer):
     parse_block(ob, rndr, text)
     if "epilog" in dir(rndr.make):
         rndr.make.epilog(ob)
-    return ob
+    return ''.join(ob)
 
 def test():
     with open('testsuite/gruber/Ordered and unordered lists.text', 'r') as f:
@@ -793,7 +793,7 @@ def test():
 2. list1
 '''
     ob = markdown(text, Mkd_html())
-    print(''.join(ob))
+    print(ob)
 
 if __name__ == '__main__':
     test()

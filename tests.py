@@ -15,7 +15,7 @@ class TestMd2HTML:
             out = out[:-1]
         
         ob = markdown(src, Mkd_html())
-        self.assertEqual(out, ''.join(ob))
+        self.assertEqual(out, ob)
 
 class TestMd2HTML_gruber(TestMd2HTML, unittest.TestCase):
 

@@ -20,7 +20,7 @@ Quick way to translate input markdown to output html:
 
     python3 md2html.py [input_file] [output_file]
 
-Or to call within your own code:
+To use within your own code:
 
     from markdown import markdown
     from renderers import Mkd_html
@@ -28,3 +28,7 @@ Or to call within your own code:
     out = markdown(source, Mkd_html())
 
     # both source and out are strings
+
+#### Credits
+
+I used the same design structure as [libsoldout](http://fossil.instinctive.eu/libsoldout/home)

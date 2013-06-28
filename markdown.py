@@ -59,6 +59,8 @@ def tag_length(data):
         i += 1
     if i >= size:
         return 0
+    if 'http' not in ''.join(data[:i]):
+        return 0
     return i+1
 
 # These are "char_triggers"

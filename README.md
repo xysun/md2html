@@ -12,13 +12,13 @@ A lightweight markdown to html parser in Python
      * Known bug when use horizontal rule after unordered list, both using asterisk, horizontal rule won't get properly rendered.
 
 * 27-Jun-2013    v0.1
-
-     Working, but you have my warnings. Specifically:
      
+     Working, but you have my warnings. Specifically:
+
      * No support for reference style links
      * No support for header lines using '=' and '-'
      * No support for horizontal rules
-     * Known bug: last paragraph in list won't be wrapped in <p>
+     * Known bug: last paragraph in list won't be wrapped in `<p>`
 
 #### How to Use:
 

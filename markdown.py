@@ -494,9 +494,9 @@ def parse_listitem(ob, rndr, data, flag):
         return 0
 
     end = peg
-    while end < size and data[end-1] != '\n':
+    while end < size and data[end-1] != '\n': # only stop at first \n!
         end += 1
-    
+         
     work = new_work_buffer(rndr)
     inter = new_work_buffer(rndr)
 
@@ -546,7 +546,6 @@ def parse_listitem(ob, rndr, data, flag):
             has_inside_empty = 1
         
         in_empty = 0
-
         work.extend(data[peg+i:end])
         peg = end
     
@@ -836,7 +835,6 @@ def markdown(ib, rndrer):
     if text[-1] != '\n':
         text.append('\n')
     
-
     # second pass: actual rendering
     
     parse_block(ob, rndr, text)
@@ -849,9 +847,10 @@ def test():
         text = f.read()
     text2 = '''
 *   list2
-    
-    line2
 
+    * list 2.1
+
+    * list 2.2
 *   list3
 '''
     ob = markdown(text2, Mkd_html())

@@ -103,6 +103,8 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('header-level5-hash-sign')
         self.general('header-level6-hash-sign-closed')
         self.general('header-level6-hash-sign')
+        self.general('header-level1-equal-underlined')
+        self.general('header-level2-dash-underlined')
 
     def test_line_break(self):
         self.general('line-break-2-spaces')

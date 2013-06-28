@@ -1,4 +1,5 @@
-## md2html
+md2html
+=====
 
 A lightweight markdown to html parser in Python
 
@@ -7,10 +8,16 @@ A lightweight markdown to html parser in Python
 * 27-Jun-2013    v0.1
 
      Working, but you have my warnings. Specifically:
+     
      * No support for reference style links
      * No support for header lines using '=' and '-'
      * No support for horizontal rules
+     * Known bug: last paragraph in list won't be wrapped in <p>
 
+* 28-Jun-2013    v0.2
+
+     * Adding support for header lines using '=' and '-'
+     * Fixed bug: last paragraph in list now wrapped in <p> properly by using a nasty global variable
 
 #### How to Use:
 

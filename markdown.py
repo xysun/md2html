@@ -9,30 +9,24 @@ import pdb
 # PROGRESS:
 #    blockquote                      DONE
 #    code (block & inline)           DONE
-#    header (only hash sign)         DONE
+#    header                          DONE
 #    link (only []())                DONE
 #    list (ordered and unordered)
 #         ordered                    DONE
 #         unordered                  DONE 
 #    emphasis(single/double/triple)  DONE
-#    linebreak                       DONE (following official markdown testsuits)
+#    linebreak                       DONE 
 #
 # TODO:
-#    header line like '=' and '-'    PRIORITY1
+#    header line like '=' and '-'    DONE
 #    HTML entities                   NO
 #    horizontal rules (?)            PRIORITY3
 #    images                          PRIORITY4
 #    reference-style links (?)       PRIORITY2
 #    original html tags              NO
 #
-# Known issues:
-#    last paragraph in a list won't get rendered with <p>         PRIORITY1
-#        Example:
-#        * list1
-#        
-#        * list2
-#        only list1 will have <p> wrapped
-#    Tabs are expanded; may not catch all edge cases
+# NOTE:
+#    Tabs are expanded to 4 spaces
 #    I've modified some of Gruber's test cases, but ONLY for non-significant spaces/newlines
 #
 #
@@ -384,6 +378,33 @@ def parse_inline(ob, rndr, data):
 # BLOCK-LEVEL PARSING FUNCTIONS #
 ################################
 
+def is_headerline(data):
+    size = len(data)
+    i = 0
+
+    if data[i] == '=':
+        i = 1
+        while i < size and data[i] == '=':
+            i += 1
+        while i < size and (data[i] == ' ' or data[i] == '\t'):
+            i += 1
+        if i >= size or data[i] == '\n':
+            return 1
+        else:
+            return 0
+    if data[i] == '-':
+        i = 1
+        while i < size and data[i] == '-':
+            i += 1
+        while i < size and (data[i] == ' ' or data[i] == '\t'):
+            i += 1
+        if i >= size or data[i] == '\n':
+            return 2
+        else:
+            return 0
+
+    return 0
+
 # prefix code. returns prefix length for block code; they all eat the FIRST special char only to allow nesting
 
 def prefix_code(data): 
@@ -454,7 +475,10 @@ def prefix_uli(data):
 
 # All parse_* functions return #chars consumed
 
+pre_empty = 0
+
 def parse_listitem(ob, rndr, data, flag):
+    global pre_empty
     size = len(data)
     orgpre = has_inside_empty = in_empty = sublist = 0
 
@@ -504,6 +528,8 @@ def parse_listitem(ob, rndr, data, flag):
             i = 1
             pre = 8
         
+        pre_empty = in_empty
+        
         if prefix_uli(data[peg+i:end]) or prefix_oli(data[peg+i:end]):
             if in_empty:
                 has_inside_empty = 1
@@ -535,10 +561,16 @@ def parse_listitem(ob, rndr, data, flag):
             parse_block(inter, rndr, work)
     else:
         if sublist and sublist < len(work):
-            parse_inline(inter, rndr, work[:sublist])
+            if pre_empty:
+                parse_block(inter, rndr, work[:sublist])
+            else:
+                parse_inline(inter, rndr, work[:sublist])
             parse_block(inter, rndr, work[sublist:])
         else:
-            parse_inline(inter, rndr, work)
+            if pre_empty:
+                parse_block(inter, rndr, work)
+            else:
+                parse_inline(inter, rndr, work)
 
     if 'listitem' in dir(rndr.make):
         rndr.make.listitem(ob, inter, flag)
@@ -651,7 +683,8 @@ def parse_paragraph(ob, rndr, data):
         end = i + 1
         while end < size and data[end-1] != '\n':
             end += 1
-        if is_empty(data[i:]): 
+        level = is_headerline(data[i:size])
+        if is_empty(data[i:]) or level != 0: 
             break
         if i and data[i] == '#':
             end = i
@@ -661,18 +694,44 @@ def parse_paragraph(ob, rndr, data):
             break
         i = end
     
-    peg = i
+    wsize = i
 
-    while peg > 0 and data[peg-1] == '\n':
-        peg -= 1 # peg pointing to '\n'
+    while wsize > 0 and data[wsize-1] == '\n':
+        wsize -= 1 # peg pointing to '\n'
     
-    tmp = new_work_buffer(rndr)
-    
-    parse_inline(tmp, rndr, data[: peg])
-    
-    if 'paragraph' in dir(rndr.make):
-        rndr.make.paragraph(ob, tmp)
-    release_work_buffer(rndr, tmp)
+    if not level:
+        tmp = new_work_buffer(rndr)
+        
+        parse_inline(tmp, rndr, data[: wsize])
+        
+        if 'paragraph' in dir(rndr.make):
+            rndr.make.paragraph(ob, tmp)
+        release_work_buffer(rndr, tmp)
+    else:
+        if wsize:
+            peg = j = 0
+            i = wsize
+            wsize -= 1
+            while wsize and data[wsize] != '\n':
+                wsize -= 1
+            peg = wsize + 1
+            while wsize and data[wsize-1] == '\n':
+                wsize -= 1
+            if wsize:
+                tmp = new_work_buffer(rndr)
+                parse_inline(tmp, rndr, data[j:j+wsize])
+                if 'paragraph' in dir(rndr.make):
+                    rndr.make.paragraph(ob, tmp)
+                release_work_buffer(rndr, tmp)
+                j += peg
+                wsize = i - peg
+            else:
+                wsize = i
+        if 'header' in dir(rndr.make):
+            span = new_work_buffer(rndr)
+            parse_inline(span, rndr, data[:wsize])
+            rndr.make.header(ob, span, level)
+            release_work_buffer(rndr, span)
 
     return end
 
@@ -789,10 +848,13 @@ def test():
     with open('testsuite/gruber/Ordered and unordered lists.text', 'r') as f:
         text = f.read()
     text2 = '''
-1. list2
-2. list1
+*   list2
+    
+    line2
+
+*   list3
 '''
-    ob = markdown(text, Mkd_html())
+    ob = markdown(text2, Mkd_html())
     print(ob)
 
 if __name__ == '__main__':

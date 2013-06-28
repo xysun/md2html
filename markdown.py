@@ -993,6 +993,8 @@ def parse_block(ob, rndr, data):
 #########################
 
 def markdown(ib, rndrer): 
+    global pre_empty
+    pre_empty = 2
     rndr = Render(make = rndrer)
     text = []
     ob = []

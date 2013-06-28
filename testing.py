@@ -150,7 +150,6 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('inline-code')
     
     def test_list(self):
-#        self.general('list-code')
         self.general('unordered-list-items-dashsign')
         self.general('unordered-list-items-leading-1space')
         self.general('unordered-list-items-leading-2spaces')
@@ -161,7 +160,7 @@ class TestMd2HTML_carlcow(TestMd2HTML, unittest.TestCase):
         self.general('unordered-list-unindented-content')
         self.general('unordered-list-with-indented-content')
         self.general('list-blockquote') 
-        self.general('list-code') # this has to be after unordered list?????
+        self.general('list-code') 
         self.general('list-multiparagraphs-tab')
         self.general('list-multiparagraphs')
         self.general('ordered-list-escaped')

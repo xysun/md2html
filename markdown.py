@@ -11,7 +11,7 @@ import pdb
 #    header line like '=' and '-'    DONE
 #    HTML entities                   NO
 #    horizontal rules                DONE
-#    images                          PRIORITY4
+#    images                          NO
 #    reference-style links           DONE
 #    original html tags              NO
 #
@@ -28,7 +28,7 @@ def is_empty(data): # return line length when it is empty, 0 otherwise
     size = len(data)
     i = 0
     while i < size and data[i] != '\n':
-        if data[i] != ' ' and data[i] != '\t':
+        if data[i] not in ' \t':
             return 0
         i += 1
     return i + 1
@@ -112,7 +112,6 @@ def get_link_ref(rndr, link, title, data): # data is id
 
     return 0
 
-
 def get_link_inline(link, title, data):
 
     size = len(data)
@@ -123,7 +122,7 @@ def get_link_inline(link, title, data):
     i = 0
     link_b = link_e = title_e = title_b = 0
 
-    while i < size and (data[i] == ' ' or data[i] == '\t' or data[i] == '\n'):
+    while i < size and data[i] in ' \t\n':
         i += 1
     link_b = i
     while i < size and data[i] != '"' and data[i] != "'":
@@ -135,14 +134,14 @@ def get_link_inline(link, title, data):
         title_b = i
 
         title_e = size - 1
-        while  title_e > title_b and (data[title_e] == ' ' or data[title_e] == '\t' or data[title_e] == '\n'):
+        while  title_e > title_b and data[title_e] in ' \t\n':
             title_e -= 1
 
         if data[title_e] != "'" and data[title_e] != '"':
             title_b = title_e = 0
             link_e = i
 
-    while link_e < size and link_e > link_b and (data[link_e - 1] == ' ' or data[link_e - 1] == '\t' or data[link_e - 1] == '\n'):
+    while link_e < size and link_e > link_b and data[link_e - 1] in ' \t\n':
         link_e -= 1
     
     if data[link_b] == '<':
@@ -189,7 +188,7 @@ def char_link(ob, rndr, data, offset):
     txt_e = i
     i += 1
 
-    while i < size and (data[i] == ' ' or data[i] == '\t' or data[i] == '\n'):
+    while i < size and data[i] in ' \t\n':
         i += 1
     
     content = new_work_buffer(rndr)
@@ -202,11 +201,11 @@ def char_link(ob, rndr, data, offset):
         while span_end < size and not (data[span_end] == ')' and (span_end == i or data[span_end - 1] != '\\')):
             span_end += 1
         
-        if span_end >= size or get_link_inline(link, title, data[i+1:span_end]) < 0:
+        if span_end >= size or get_link_inline(link, title, data[i+1:span_end]) < 0:#TODO: duplicate ending statements
+
             release_work_buffer(rndr, title)
             release_work_buffer(rndr, link)
             release_work_buffer(rndr, content)
-
             return 0
 
         i = span_end + 1
@@ -221,8 +220,8 @@ def char_link(ob, rndr, data, offset):
             release_work_buffer(rndr, title)
             release_work_buffer(rndr, link)
             release_work_buffer(rndr, content)
-
             return 0
+
         if i + 1 == id_end:
             id_data = data[1:txt_e]
         else:
@@ -277,10 +276,10 @@ def char_codespan(ob, rndr, data, offset):
         return 0
 
     f_begin = nb
-    while f_begin < end and (data[f_begin] == ' ' or data[f_begin] == '\t'):
+    while f_begin < end and data[f_begin] in ' \t':
         f_begin += 1
     f_end = end - nb
-    while f_end > nb and (data[f_end - 1] == ' ' or data[f_end-1] == '\t'):
+    while f_end > nb and data[f_end - 1] in ' \t':
         f_end -= 1
 
     if f_begin < f_end:
@@ -297,22 +296,21 @@ def char_emphasis(ob, rndr, data, offset):
     c = data[0]
     ret = 0
     
-    
     if size > 2 and data[1] != c:
         # whitespace cannot follow an opening emphasis
         ret = parse_emph1(ob, rndr, data[1:],  c)
-        if data[1] == ' ' or data[1] == '\t' or data[1] == '\n' or ret == 0:
+        if data[1] in ' \t\n' or ret == 0:
             return 0
         return ret + 1
 
     if size > 3 and data[1] == c and data[2] != c:
         ret = parse_emph2(ob, rndr, data[2:], c)
-        if data[2] == ' ' or data[2] == '\t' or data[2] == '\n' or ret == 0:
+        if data[2] in ' \t\n' or ret == 0:
             return 0
         return ret + 2
     if size > 4 and data[1] == c and data[2] == c and data[3] != c:
         ret = parse_emph3(ob, rndr, data[3:], c)
-        if data[3] == ' ' or data[3] == '\t' or data[3] == '\n' or ret == 0:
+        if data[3] in ' \t\n' or ret == 0:
             return 0
         return ret + 3
 
@@ -340,7 +338,7 @@ def parse_emph1(ob, rndr, data, c):
             continue
 
         # no space after emphasis
-        if data[i] == c and data[i-1] != ' ' and data[i-1] != '\t' and data[i-1] != '\n':
+        if data[i] == c and data[i-1] not in ' \t\n':
             work = new_work_buffer(rndr)
             parse_inline(work, rndr, data[:i])
             r = rndr.make.emphasis(ob, work, c)
@@ -363,7 +361,7 @@ def parse_emph2(ob, rndr, data, c):
         if not length:
             return 0
         i += length
-        if i+1 < size and data[i] == c and data[i+1] == c and i and data[i-1] != ' ' and data[i-1] != '\t' and data[i-1] != '\n':
+        if i+1 < size and data[i] == c and data[i+1] == c and i and data[i-1] not in ' \t\n':
             work = new_work_buffer(rndr)
             parse_inline(work, rndr, data[:i])
             r = rndr.make.double_emphasis(ob, work, c)
@@ -381,7 +379,7 @@ def parse_emph3(ob, rndr, data, c):
         if not length:
             return 0
         i += length
-        if data[i] != c or data[i-1] == ' ' or data[i-1] == '\t' or data[i-1] == '\n':
+        if data[i] != c or data[i-1] in ' \t\n':
             continue
         if i+2 < size and data[i+1] == c and data[i+2] == c and 'triple_emphasis' in dir(rndr.make):
             work = new_work_buffer(rndr)
@@ -396,7 +394,7 @@ def find_emph_char(data, c): # find the next emph char
     size = len(data)
     i = 0
     while i < size:
-        while i < size and data[i] != c and data[i] != '`' and data[i] != '[':
+        while i < size and data[i] != c and data[i] not in '`[':
             i += 1
         if i >= size:
             return 0
@@ -411,8 +409,7 @@ normal_text = 0
 def parse_inline(ob, rndr, data):
     global normal_text
     size = len(data)
-    i = 0
-    end = 0
+    i = end = 0
 
     if len(rndr.work) > rndr.make.max_work_stack:
         if size:
@@ -443,32 +440,26 @@ def parse_inline(ob, rndr, data):
             i += end
             end = i
     
-
 #################################
 # BLOCK-LEVEL PARSING FUNCTIONS #
 ################################
 
 def is_hrule(data):
     i = n = 0
-    c = ''
     size = len(data)
     if size < 3:
         return 0
-    if data[0] == ' ':
-        i += 1
-        if data[1] == ' ':
-            i += 1
-            if data[2] == ' ':
-                i += 1
+    while i <= 2 and data[i] == ' ': #remove at most 3 spaces
+        i += 1 
 
-    if i + 2 >= size or (data[i] != '*' and data[i] != '-' and data[i] != '_'):
+    if i + 2 >= size or (data[i] not in '*-_'):
         return 0
     c = data[i]
 
     while i < size and data[i] != '\n':
         if data[i] == c:
             n += 1
-        elif data[i] != ' ' and data[i] != '\t':
+        elif data[i] not in ' \t':
             return 0
         i += 1
 
@@ -483,20 +474,17 @@ def is_ref(data, peg, end, last, refs):
 
     if peg + 3 >= end:
         return 0
-    if data[peg] == ' ':
-        i = 1
-        if data[peg+1] == ' ':
-            i = 2
-            if data[peg+2] == ' ':
-                i = 3
-                if data[peg+3] == ' ':  
-                    return 0
+    while i <= 2 and data[peg+i] == ' ':
+        i += 1
+    if i == 3 and data[peg+3] == ' ':
+        return 0
+    
     i += peg
     if data[i] != '[':
         return 0
     i += 1
     id_offset = i
-    while i < end and data[i] != '\n' and data[i] != ']':
+    while i < end and data[i] not in '\n]':
         i += 1
     if i >= end or data[i] != ']':
         return 0
@@ -506,11 +494,11 @@ def is_ref(data, peg, end, last, refs):
     if i >= end or data[i] != ':':
         return 0
     i += 1
-    while i < end and (data[i] == ' ' or data[i] == '\t'):
+    while i < end and data[i] in ' \t':
         i += 1
     if i < end and data[i] == '\n':
         i += 1
-    while i < end and (data[i] == ' ' or data[i] == '\t'):
+    while i < end and data[i] in ' \t':
         i += 1
     if i >= end:
         return 0
@@ -518,16 +506,16 @@ def is_ref(data, peg, end, last, refs):
     if data[i] == '<':
         i += 1
     link_offset = i
-    while i < end and data[i] != ' ' and data[i] != '\t' and data[i] != '\n':
+    while i < end and data[i] not in ' \t\n':
         i += 1
     if data[i-1] == '>':
         link_end = i - 1
     else:
         link_end = i
 
-    while i < end and (data[i] == ' ' or data[i] == '\t'):
+    while i < end and data[i] in ' \t':
         i += 1
-    if i < end and data[i] != '\n' and data[i] != "'" and data[i] != '"' and data[i] != '(':
+    if i < end and data[i] not in '\n(' and data[i] != "'" and data[i] != '"':
         return 0
     line_end = 0
     
@@ -538,7 +526,7 @@ def is_ref(data, peg, end, last, refs):
 
     if line_end:
         i = line_end + 1
-        while i < end and (data[i] == ' ' or data[i] == '\t'):
+        while i < end and data[i] in ' \t':
             i += 1
     
     if i + 1 < end and (data[i] == "'" or data[i] == '"' or data[i] == '('):
@@ -548,7 +536,7 @@ def is_ref(data, peg, end, last, refs):
             i += 1
         title_end = i + (i + 1 < end and data[i] == '\n')
         i -= 1
-        while i > title_offset and (data[i] == ' ' or data[i] == '\t'):
+        while i > title_offset and data[i] in ' \t':
             i -= 1
         if i > title_offset and (data[i] == '"' or data[i] == ')' or data[i] == "'"):
             line_end = title_end
@@ -570,7 +558,7 @@ def is_headerline(data):
         i = 1
         while i < size and data[i] == '=':
             i += 1
-        while i < size and (data[i] == ' ' or data[i] == '\t'):
+        while i < size and data[i] in ' \t':
             i += 1
         if i >= size or data[i] == '\n':
             return 1
@@ -580,7 +568,7 @@ def is_headerline(data):
         i = 1
         while i < size and data[i] == '-':
             i += 1
-        while i < size and (data[i] == ' ' or data[i] == '\t'):
+        while i < size and data[i] in ' \t':
             i += 1
         if i >= size or data[i] == '\n':
             return 2
@@ -593,26 +581,23 @@ def is_headerline(data):
 
 def prefix_code(data): 
     size = len(data)
-
+    
+    # allow both \t and space
     if size > 0 and data[0] == '\t':
         return 1
     if size > 3 and ''.join(data[0:4]) == '    ':
         return 4
-    
     return 0
    
 def prefix_quote(data):
     size = len(data)
     i = 0
 
-    if i < size and data[i] == ' ':
+    while i < size and i <= 3 and data[i] == ' ': # allow 3 spaces
         i += 1
-    if i < size and data[i] == ' ':
-        i += 1
-    if i < size and data[i] == ' ':
-        i += 1
+    
     if i < size and data[i] == '>':
-        if i+1 < size and (data[i+1] == ' ' or data[i+1] == '\t'):
+        if i+1 < size and (data[i+1] in ' \t'): # allow space after >
             return i + 2
         else:
             return i + 1
@@ -622,35 +607,27 @@ def prefix_quote(data):
 def prefix_oli(data):
     size = len(data)
     i = 0
-    if i < size and data[i] == ' ':
-        i += 1
-    if i < size and data[i] == ' ':
-        i += 1
-    if i < size and data[i] == ' ':
+    while i <= 2 and data[i] == ' ': 
         i += 1
     
-    if i >= size or data[i] < '0' or data[i] > '9':
+    if i >= size or not data[i].isdigit():
         return 0
-    while i < size and data[i] >= '0' and data[i] <= '9':
+    while i < size and data[i].isdigit():
         i += 1
-    if i + 1 >= size or data[i] != '.' or (data[i+1] != ' ' and data[i+1] != '\t'):
+    if i + 1 >= size or data[i] != '.' or data[i+1] not in ' \t':
         return 0
     i += 2
 
-    while i < size and (data[i] == ' ' or data[i] == '\t'):
+    while i < size and data[i] in ' \t':
         i += 1
     return i
 
 def prefix_uli(data):
     size = len(data)
     i = 0
-    if i < size and data[i] == ' ':
+    while i <= 2 and data[i] == ' ':
         i += 1
-    if i < size and data[i] == ' ':
-        i += 1
-    if i < size and data[i] == ' ':
-        i += 1
-    if i + 1 >= size or (data[i] != '*' and data[i] != '+' and data[i] != '-') or (data[i+1] != ' ' and data[i+1] != '\t'):
+    if i + 1 >= size or (data[i] not in '*+-') or (data[i+1] not in ' \t'):
         return 0
     i += 2
     while i < size and (data[i] == ' ' or data[i] == '\t'):
@@ -659,21 +636,17 @@ def prefix_uli(data):
 
 # All parse_* functions return #chars consumed
 
-pre_empty = 2 # 2 for original value
+pre_empty = MKD_LIST_FIRSTPARSE #
 
 def parse_listitem(ob, rndr, data, flag):
     global pre_empty
     size = len(data)
-    orgpre = has_inside_empty = in_empty = sublist = 0
+    pre_space = has_inside_empty = in_empty = sublist = 0
 
-    if size > 1 and data[0] == ' ':
-        orgpre = 1
-        if size > 2 and data[1] == ' ':
-            orgpre = 2
-            if size > 3 and data[2] == ' ':
-                orgpre = 3
+    while pre_space < size and pre_space <= 2 and data[pre_space] == ' ':
+        pre_space += 1
     
-    peg = prefix_uli(data) or prefix_oli(data)
+    peg = prefix_uli(data) or prefix_oli(data) # get rid of *
     if not peg:
         return 0
 
@@ -681,14 +654,13 @@ def parse_listitem(ob, rndr, data, flag):
     while end < size and data[end-1] != '\n': # only stop at first \n!
         end += 1
          
-    work = new_work_buffer(rndr)
+    listitem_buf = new_work_buffer(rndr)
     inter = new_work_buffer(rndr)
 
-    work.extend(data[peg:end])
+    listitem_buf.extend(data[peg:end]) # put item till first \n on to buffer
     peg = end
     
-    
-    while peg < size:
+    while peg < size: # parse rest
         end += 1
         while end < size and data[end-1] != '\n':
             end += 1
@@ -699,92 +671,85 @@ def parse_listitem(ob, rndr, data, flag):
         
         i = 0
 
-        if end - peg > 1 and data[peg] == ' ':
-            i = 1
-            if end - peg > 2 and data[peg + 1] == ' ':
-                i = 2
-                if end - peg > 3 and data[peg + 2] == ' ':
-                    i = 3
-                    if end - peg > 4 and data[peg + 3] == ' ':
-                        i = 4
+        while i < end - peg and i <= 3 and data[peg + i] == ' ':
+            i += 1
         pre = i
-        if data[peg] == '\t':
+        if data[peg] == '\t': # 1 tab = 4 spaces
             i = 1
             pre = 8
         
-        if pre_empty == 2:
+        if pre_empty == MKD_LIST_FIRSTPARSE: # parse first list, update pre_empty
             pre_empty = in_empty
         
-        if (prefix_uli(data[peg+i:end]) and not is_hrule(data[peg+i:end])) or prefix_oli(data[peg+i:end]):
+        if (prefix_uli(data[peg+i:end]) and not is_hrule(data[peg+i:end])) or prefix_oli(data[peg+i:end]): # a list symbol appears again
             if in_empty:
                 has_inside_empty = 1
-            if pre == orgpre:
-                break
-            if not sublist:
-                sublist = len(work)
+            if pre == pre_space:
+                break # same level
+            if not sublist: # diff level, has sublist
+                sublist = len(listitem_buf) # sublist is the starting pos of sublist
 
         elif in_empty and i < 4 and data[peg] != '\t':
-            flag = flag | MKD_LI_END
+            flag = MKD_LIST_END
             break
         elif in_empty:
-            work.append('\n')
+            listitem_buf.append('\n') # ensure <p>
             has_inside_empty = 1
         
         in_empty = 0
-        work.extend(data[peg+i:end])
+        listitem_buf.extend(data[peg+i:end])
         peg = end
     
-    if has_inside_empty:
-        flag |= MKD_LI_BLOCK
+    if has_inside_empty: # it's a block
+        flag = MKD_LIST_BLOCK
     
-    if (flag & MKD_LI_BLOCK):
-        if sublist and sublist < len(work):
-            parse_block(inter, rndr, work[:sublist])
-            parse_block(inter, rndr, work[sublist:])
+    if flag == MKD_LIST_BLOCK:
+        if sublist and sublist < len(listitem_buf):
+            parse_block(inter, rndr, listitem_buf[:sublist])
+            parse_block(inter, rndr, listitem_buf[sublist:])
         else:
-            parse_block(inter, rndr, work)
+            parse_block(inter, rndr, listitem_buf)
     else:
-        if sublist and sublist < len(work):
+        if sublist and sublist < len(listitem_buf):
             if pre_empty:
-                parse_block(inter, rndr, work[:sublist])
+                parse_block(inter, rndr, listitem_buf[:sublist])
             else:
-                parse_inline(inter, rndr, work[:sublist])
-                parse_block(inter, rndr, work[sublist:])
+                parse_inline(inter, rndr, listitem_buf[:sublist])
+                parse_block(inter, rndr, listitem_buf[sublist:])
         else:
             if pre_empty:
-                parse_block(inter, rndr, work)
+                parse_block(inter, rndr, listitem_buf)
             else:
-                parse_inline(inter, rndr, work)
+                parse_inline(inter, rndr, listitem_buf)
 
     if 'listitem' in dir(rndr.make):
         rndr.make.listitem(ob, inter, flag)
     release_work_buffer(rndr, inter)
-    release_work_buffer(rndr, work)
-    pre_empty = has_inside_empty
+    release_work_buffer(rndr, listitem_buf)
+    pre_empty = has_inside_empty #update global pre_empty
     return peg
 
-def parse_list(ob, rndr, data, flag):
+def parse_list(ob, rndr, data, flag): #TODO: UGLY..better than flags? 
     size = len(data)
-    work = new_work_buffer(rndr)
+    list_buf = new_work_buffer(rndr)
     i = j = 0
 
     while i < size:
-        j = parse_listitem(work, rndr, data[i:size], flag)
+        j = parse_listitem(list_buf, rndr, data[i:size], flag)
         i += j
-        if not j or (flag & MKD_LI_END):
+        if not j or flag == MKD_LIST_END:
             break
     
     if 'list' in dir(rndr.make):
-        rndr.make.list(ob, ''.join(work), flag)
-    release_work_buffer(rndr, work)
+        rndr.make.list(ob, ''.join(list_buf), flag)
+    release_work_buffer(rndr, list_buf)
     
     return i
-    
 
 def parse_blockcode(ob, rndr, data):
     size = len(data)
 
-    work = new_work_buffer(rndr)
+    blockcode_buf = new_work_buffer(rndr)
 
     peg = 0
     while peg < size:
@@ -799,63 +764,50 @@ def parse_blockcode(ob, rndr, data):
 
         if peg < end:
             if is_empty(data[peg:end]):
-                work.append('\n')
+                blockcode_buf.append('\n')
             else:
-                work.extend(data[peg:end])
+                blockcode_buf.extend(data[peg:end])
 
         peg = end
 
-    while len(work) > 0 and work[-1] == '\n':
-        work.pop()
-    work.append('\n')
+    while len(blockcode_buf) > 0 and blockcode_buf[-1] == '\n':
+        blockcode_buf.pop()
+    blockcode_buf.append('\n') #ensure only 1 \n
 
     if 'blockcode' in dir(rndr.make):
-        rndr.make.blockcode(ob, work)
-    release_work_buffer(rndr, work)
+        rndr.make.blockcode(ob, blockcode_buf)
+    release_work_buffer(rndr, blockcode_buf)
 
     return peg
 
 
 def parse_atxheader(ob, rndr, data):
     size = len(data)
-    level = end = skip = span_peg = span_size = 0
-
-    if not size or data[0] != '#':
-        return 0
+    level = end = skip = peg = span_size = i = 0 #TODO 4: is this good style?
 
     while level < size and level < 6 and data[level] == '#':
         level += 1
     
     i = level
-    while i < size and (data[i] == ' ' or data[i] == '\t'):
+    while i < size and (data[i] in ' \t'): # skip spaces after ###s
         i += 1
 
-    span_peg = i # start
-
-    end = i
+    peg = end = i # start
+    
     while end < size and data[end] != '\n':
         end += 1
-    skip = end # end
+    skip = end # skip marks "far-end"
 
-    if end <= i: # blank ##
-        return parse_paragraph(ob, rndr, data)
-
-    while end and data[end-1] == '#':
+    while end and (data[end-1] in ' \t#'):
         end -= 1
 
-    while end and (data[end - 1] == ' ' or data[end - 1] == '\t'):
-        end -= 1
-
-    if end <= i:
-        parse_paragraph(ob, rndr, data)
-
-    span_size = end - span_peg
+    span_size = end - peg
 
     if 'header' in dir(rndr.make):
-        span = new_work_buffer(rndr)
-        parse_inline(span, rndr, data[span_peg:end])
-        rndr.make.header(ob, span, level)
-        release_work_buffer(rndr, span)
+        header_buf = new_work_buffer(rndr)
+        parse_inline(header_buf, rndr, data[peg:end])
+        rndr.make.header(ob, header_buf, level)
+        release_work_buffer(rndr, header_buf)
 
     return skip
 
@@ -884,7 +836,7 @@ def parse_paragraph(ob, rndr, data):
     while wsize > 0 and data[wsize-1] == '\n':
         wsize -= 1 # peg pointing to '\n'
     
-    if not level:
+    if not level: # pure text
         tmp = new_work_buffer(rndr)
         
         parse_inline(tmp, rndr, data[: wsize])
@@ -892,12 +844,12 @@ def parse_paragraph(ob, rndr, data):
         if 'paragraph' in dir(rndr.make):
             rndr.make.paragraph(ob, tmp)
         release_work_buffer(rndr, tmp)
-    else:
+    else: #headerline
         if wsize:
             peg = j = 0
             i = wsize
             wsize -= 1
-            while wsize and data[wsize] != '\n':
+            while wsize and data[wsize] != '\n': #get content after header
                 wsize -= 1
             peg = wsize + 1
             while wsize and data[wsize-1] == '\n':
@@ -925,7 +877,7 @@ def parse_blockquote(ob, rndr, data):
     work_data = []
     
     peg = end = pre = 0
-    out = new_work_buffer(rndr)
+    blockquote_buf = new_work_buffer(rndr)
 
     while peg < size:
         end = peg + 1
@@ -937,17 +889,14 @@ def parse_blockquote(ob, rndr, data):
         elif is_empty(data[peg:end]) and (end >= size or (prefix_quote(data[end:size]) == 0 and not is_empty(data[end:size]))):
             break
 
-
-        if peg < end:
-            work_data += data[peg:end].copy()
+        work_data += data[peg:end].copy()
         peg = end
     
-    
-    parse_block(out, rndr, work_data)
+    parse_block(blockquote_buf, rndr, work_data)
     if 'blockquote' in dir(rndr.make):
-        rndr.make.blockquote(ob, out)
+        rndr.make.blockquote(ob, blockquote_buf)
     
-    release_work_buffer(rndr, out)
+    release_work_buffer(rndr, blockquote_buf)
 
     return end
 
@@ -965,10 +914,10 @@ def parse_block(ob, rndr, data):
         txt_data = data[peg:]
         if data[peg] == '#':
             peg += parse_atxheader(ob, rndr, txt_data)
-        elif is_empty(txt_data) != 0:
+        elif is_empty(txt_data) != 0: #TODO 3: can I avoid calling twice?
             peg += is_empty(txt_data)
         elif is_hrule(txt_data):
-            if 'hrule' in dir(rndr.make):
+            if 'hrule' in dir(rndr.make): # TODO: better way than `in dir(object)` to detect a method?
                 rndr.make.hrule(ob)
             while peg < size and data[peg] != '\n':
                 peg += 1
@@ -980,10 +929,10 @@ def parse_block(ob, rndr, data):
         elif prefix_oli(txt_data):
             peg += parse_list(ob, rndr, txt_data, MKD_LIST_ORDERED)
         elif prefix_uli(txt_data):
-            peg += parse_list(ob, rndr, txt_data, 0)
+            peg += parse_list(ob, rndr, txt_data, MKD_LIST_UNORDERED)
         else:
             # take out leading spaces
-            while peg < size and (data[peg] == ' ' or data[peg] == '\t'):
+            while peg < size and (data[peg] in ' \t'):
                 peg += 1
             txt_data = data[peg:]
             peg += parse_paragraph(ob, rndr, txt_data)
@@ -994,11 +943,11 @@ def parse_block(ob, rndr, data):
 
 def markdown(ib, rndrer): 
     global pre_empty
-    pre_empty = 2
+    pre_empty = MKD_LIST_FIRSTPARSE 
     rndr = Render(make = rndrer)
     text = []
     ob = []
-    peg = end = 0
+    start = end = 0
     
     size = len(ib)
 
@@ -1020,24 +969,25 @@ def markdown(ib, rndrer):
     rndr.active_char['<'] = char_langle_tag
 
     # first pass, copy ib to text, add one \n per new line, add a final \n if not present
-    while peg < size:
-        tend = is_ref(ib, peg, size, end, rndr.refs)
-        if tend:
-            end = tend
-            peg = end
+    #TODO 1: start-end style + while loops
+    while start < size:
+        ref_end = is_ref(ib, start, size, end, rndr.refs) # is_ref returns end position
+        if ref_end:
+            end = ref_end
+            start = end
         else:
-            end = peg
+            end = start 
             while end < size and ib[end] != '\n':
                 end += 1
-            if end > peg:
-                text.extend(ib[peg:end])
+            if end > start:
+                text.extend(ib[start:end])
             while end < size and ib[end] == '\n':
                 if end + 1 < len(ib) and ib[end+1] != '\n':
                     text.append('\n')
                 if end + 2 < len(ib) and ib[end+1] == '\n' and ib[end+2] != '\n':
                     text.append('\n')
                 end += 1
-            peg = end
+            start = end
 
     if rndr.refs: # sort
         rndr.refs.sort(key = lambda x: str.lower(x['id']))
@@ -1060,11 +1010,7 @@ def test():
         text = f.read()
     text2 = '''
 * list1
-    * list1.1
-* list2
-    * list2.1
-
----
+* list3
 '''
     ob = markdown(text2, Mkd_html())
     print(ob)

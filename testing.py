@@ -2,6 +2,8 @@ import unittest, pdb
 from markdown import markdown
 from renderers import Mkd_renderer, Mkd_html
 
+#TODO: better way to testing all files in a folder
+
 class TestMd2HTML:
 
     def general(self, fname):
